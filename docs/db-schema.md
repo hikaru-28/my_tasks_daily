@@ -199,6 +199,15 @@ URL に出ても連番から他レコードを推測できない。UUID より�
 同一ステータス内でのドラッグ並び替えに使う。`Int` の連番だと挿入のたびに全件更新が必要になるため、
 **M3 の実装時は 1024 刻みで採番し、間に挿入するときは前後の中間値を使う**こと。
 
+### 8. `Event` の一覧取得は `from`/`to` との重なり判定（半開区間）で行う
+
+`GET /api/v1/events` の `from`/`to` は「範囲内に開始した予定」だけでなく「範囲より前に始まり範囲内で終わる予定」
+「範囲を跨いで開催される予定」も含めたい（日/週ビューでの表示欠けを防ぐため）。そのため
+`startAt < to AND endAt > from` という半開区間の重なり判定を使う（`services/event-service.ts`）。
+
+終日（`allDay: true`）の予定は `startAt = 対象日 0:00 JST`、`endAt = 翌日 0:00 JST`（終了は排他的）として
+保存する規約とし、この重なり判定と整合させる。
+
 ---
 
 ## 想定クエリとインデックスの対応
@@ -207,7 +216,7 @@ URL に出ても連番から他レコードを推測できない。UUID より�
 |---|---|---|
 | 今日期限の未完了タスクを優先度順 | `where: { userId, status: { not: 'DONE' }, dueAt: { lte: 今日の終わり } }` | `[userId, dueAt]` |
 | ステータス別のタスク一覧（かんばん） | `where: { userId, status }, orderBy: [{ priority }, { sortOrder }]` | `[userId, status, priority]` |
-| 今週の予定を日付順 | `where: { userId, startAt: { gte: 週初 }, endAt: { lte: 週末 } }` | `[userId, startAt]` |
+| 指定期間と重なる予定を日付順 | `where: { userId, startAt: { lt: to }, endAt: { gt: from } }` | `[userId, startAt]` |
 | メモ一覧（更新順、アーカイブ除く） | `where: { userId, archivedAt: null }, orderBy: { updatedAt: 'desc' }` | `[userId, archivedAt, updatedAt]` |
 | タグで横断検索 | `TaskTag/EventTag/NoteTag` を `tagId` で引く | 各中間テーブルの `[tagId]` |
 
