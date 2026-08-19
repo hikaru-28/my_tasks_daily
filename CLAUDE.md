@@ -44,8 +44,6 @@ packages/shared/src/               Zodスキーマ・DTO型・共通定数
 
 ## コマンド
 
-<!-- M2 で雛形を作るまでこれらは未実装。実装したらこの注記を消すこと -->
-
 | 用途 | コマンド |
 |---|---|
 | DB起動 | `docker compose up -d` |
@@ -66,6 +64,6 @@ packages/shared/src/               Zodスキーマ・DTO型・共通定数
 
 ## 現在の進捗
 
-**M1（設計・規約の確定）完了。アプリのコードはまだ1行も存在しない。**
-次は M2（モノレポ雛形 + Docker Postgres + Prisma migrate + ヘルスチェック疎通）。
+**M2（土台の構築）完了。`GET /api/v1/health` が200を返し、Prisma Studio で全テーブルが見える状態。**
+次は M3（タスクの縦切り）。ブラウザからタスクの追加・完了・削除ができるようにする。
 詳細は `docs/roadmap.md` を読め。
