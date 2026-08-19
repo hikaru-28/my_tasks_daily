@@ -30,6 +30,7 @@ export const taskCreateSchema = z.object({
     .datetime()
     .transform((value) => new Date(value))
     .optional(),
+  eventId: z.string().cuid().optional(),
 })
 // サーバー用（validateミドルウェア通過後）。dueAtはtransform済みでDate
 export type TaskCreateInput = z.infer<typeof taskCreateSchema>
@@ -48,6 +49,7 @@ export const taskUpdateSchema = z
       .nullable()
       .optional(),
     status: taskStatusSchema.optional(),
+    eventId: z.string().cuid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'at least one field must be provided',
@@ -62,6 +64,7 @@ export const taskListQuerySchema = z.object({
   status: taskStatusSchema.optional(),
   dueBefore: z.coerce.date().optional(),
   tagId: z.string().cuid().optional(),
+  eventId: z.string().cuid().optional(),
   q: z.string().trim().min(1).optional(),
 })
 export type TaskListQuery = z.infer<typeof taskListQuerySchema>
