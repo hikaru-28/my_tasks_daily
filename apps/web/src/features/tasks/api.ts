@@ -33,6 +33,7 @@ function toSearchParams(query: TaskListQuery): Record<string, string | undefined
     status: query.status,
     dueBefore: query.dueBefore?.toISOString(),
     tagId: query.tagId,
+    eventId: query.eventId,
     q: query.q,
   }
 }

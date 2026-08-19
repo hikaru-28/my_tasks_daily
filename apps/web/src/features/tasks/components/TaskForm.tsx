@@ -1,6 +1,8 @@
 import { useState, type SubmitEvent } from 'react'
 import type { Task, TaskCreateBody, TaskPriority, TaskUpdateBody } from '@my-daily-tasks/shared'
 import { useCreateTask, useUpdateTask } from '@/features/tasks/hooks'
+import { useEvents } from '@/features/events/hooks'
+import { addDays } from '@/features/events/lib/date-range'
 import { isoStringToJstDateInput, jstDateInputToIsoString } from '@/lib/jst-date'
 
 type TaskFormProps = {
@@ -15,9 +17,14 @@ export function TaskForm({ mode, initialValue, onSuccess, onCancel }: TaskFormPr
   const [description, setDescription] = useState(initialValue?.description ?? '')
   const [priority, setPriority] = useState<TaskPriority>(initialValue?.priority ?? 'MEDIUM')
   const [dueAt, setDueAt] = useState(isoStringToJstDateInput(initialValue?.dueAt ?? null))
+  const [eventId, setEventId] = useState(initialValue?.eventId ?? '')
 
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
+  // 予定選択肢は直近90日〜先90日の範囲に絞る（全予定を無条件に読み込まないため）。
+  // 毎レンダーで new Date() すると useQuery のキーが変わり続けてしまうため、マウント時に1度だけ計算する。
+  const [eventOptionRange] = useState(() => ({ from: addDays(new Date(), -90), to: addDays(new Date(), 90) }))
+  const { data: eventOptions } = useEvents(eventOptionRange)
 
   const isSubmitting = createTask.isPending || updateTask.isPending
   const errorMessage = createTask.error?.message ?? updateTask.error?.message
@@ -31,6 +38,7 @@ export function TaskForm({ mode, initialValue, onSuccess, onCancel }: TaskFormPr
         priority,
         ...(description.trim() ? { description: description.trim() } : {}),
         ...(dueAt ? { dueAt: jstDateInputToIsoString(dueAt) } : {}),
+        ...(eventId ? { eventId } : {}),
       }
       createTask.mutate(body, { onSuccess })
       return
@@ -44,6 +52,7 @@ export function TaskForm({ mode, initialValue, onSuccess, onCancel }: TaskFormPr
       priority,
       description: description.trim() ? description.trim() : null,
       dueAt: dueAt ? jstDateInputToIsoString(dueAt) : null,
+      eventId: eventId ? eventId : null,
     }
     updateTask.mutate({ id: initialValue.id, input: body }, { onSuccess })
   }
@@ -113,6 +122,27 @@ export function TaskForm({ mode, initialValue, onSuccess, onCancel }: TaskFormPr
             className="rounded border border-slate-300 px-2 py-1"
           />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="task-event-id" className="text-sm font-medium text-slate-700">
+          予定
+        </label>
+        <select
+          id="task-event-id"
+          value={eventId}
+          onChange={(event) => {
+            setEventId(event.target.value)
+          }}
+          className="rounded border border-slate-300 px-2 py-1"
+        >
+          <option value="">予定なし</option>
+          {eventOptions?.items.map((eventOption) => (
+            <option key={eventOption.id} value={eventOption.id}>
+              {eventOption.title}
+            </option>
+          ))}
+        </select>
       </div>
 
       {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
