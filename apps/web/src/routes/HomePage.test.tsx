@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router'
 import { HomePage } from '@/routes/HomePage'
 
 describe('HomePage', () => {
@@ -10,7 +11,9 @@ describe('HomePage', () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <HomePage />
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
       </QueryClientProvider>,
     )
 

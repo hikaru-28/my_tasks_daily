@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router'
 import { API_BASE_PATH } from '@my-daily-tasks/shared'
 
 type HealthResponse = {
@@ -32,6 +33,9 @@ export function HomePage() {
           status: {data.status} / db: {data.db}
         </p>
       )}
+      <Link to="/tasks" className="text-slate-900 underline">
+        タスク一覧へ
+      </Link>
     </main>
   )
 }

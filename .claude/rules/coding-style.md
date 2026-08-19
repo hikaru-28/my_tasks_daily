@@ -42,3 +42,11 @@
 - ルーティングは Supertest で `app` を直接叩く結合テストを書け（サーバーを listen させるな）。
 - UI は「表示されるか」「操作できるか」をテストせよ。スタイルやDOM構造をテストするな。
 - テストを通すためだけにプロダクションコードへ分岐を足すな。
+- `apps/api` のテストは専用のテストDBを持たず実DBを直接使う（M3で採用）。サービス層のテストは
+  専用テストユーザーを作って後始末し、ルーティングのテストは開発用シードユーザー（`dev@example.com`）の
+  タスクを `beforeEach` で消してからゼロ件で始める。そのため `npm test` を実行すると開発用シードの
+  タスクが消える。ブラウザ確認用のデータが必要になったら `npm run db:seed -w apps/api` を再実行せよ。
+- Zod の `validate` ミドルウェア（`apps/api/src/middlewares/validate.ts`）は body/query/params を
+  `.transform()` 込みでパース済みの状態で `req.validated` に格納する。ルート側で同じスキーマを
+  再度 `.parse()` するな（`.transform()` で型が変わった値を再度入力用スキーマに通すと失敗する）。
+  `req.validated` は型システム上 `unknown` なので、ルート側で対応する型へ一度だけ `as` で絞り込め。
