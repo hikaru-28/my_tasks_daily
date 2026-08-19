@@ -1,7 +1,7 @@
 import { useState, type SubmitEvent } from 'react'
 import type { Task, TaskCreateBody, TaskPriority, TaskUpdateBody } from '@my-daily-tasks/shared'
 import { useCreateTask, useUpdateTask } from '@/features/tasks/hooks'
-import { isoStringToJstDateInput, jstDateInputToIsoString } from '@/features/tasks/lib/format-date'
+import { isoStringToJstDateInput, jstDateInputToIsoString } from '@/lib/jst-date'
 
 type TaskFormProps = {
   mode: 'create' | 'edit'
