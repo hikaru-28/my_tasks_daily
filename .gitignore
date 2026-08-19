@@ -1,0 +1,34 @@
+# 依存
+node_modules/
+
+# ビルド成果物
+dist/
+build/
+*.tsbuildinfo
+
+# 環境変数（.env.example のみ追跡する）
+.env
+.env.*
+!.env.example
+
+# Prisma の生成物（migrations/ は追跡すること）
+**/generated/
+
+# テスト・キャッシュ
+coverage/
+.vite/
+.turbo/
+
+# エディタ・OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Claude Code のローカル設定
+.claude/settings.local.json
+CLAUDE.local.md
+
+# ログ
+*.log
+npm-debug.log*
