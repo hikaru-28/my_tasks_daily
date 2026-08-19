@@ -93,6 +93,24 @@ describe('PATCH /api/v1/tasks/:id', () => {
   })
 })
 
+describe('PATCH /api/v1/tasks/:id eventId linking', () => {
+  // 成功パス（有効なeventIdでの紐付け）は task-service.test.ts で検証する。
+  // ここで実際に /api/v1/events 経由でイベントを作ると、events.test.ts の beforeEach
+  // （開発用ユーザーのEventを一括削除）と同じDB上でファイル間競合を起こしうるため避ける。
+  it('returns 404 NOT_FOUND when eventId does not exist', async () => {
+    const created = await request(app).post('/api/v1/tasks').send({ title: 'タスク' })
+    const createdBody = created.body as { id: string }
+
+    const response = await request(app)
+      .patch(`/api/v1/tasks/${createdBody.id}`)
+      .send({ eventId: 'cknonexistent00000000000' })
+    const body: unknown = response.body
+
+    expect(response.status).toBe(404)
+    expect(body).toMatchObject({ error: { code: 'NOT_FOUND' } })
+  })
+})
+
 describe('DELETE /api/v1/tasks/:id', () => {
   it('deletes the task and returns 204', async () => {
     const created = await request(app).post('/api/v1/tasks').send({ title: '削除対象' })

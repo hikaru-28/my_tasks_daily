@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
 import { NotFoundError, UnprocessableError } from '@/errors/app-error'
 import { createTask, deleteTask, getTask, listTasks, updateTask } from '@/services/task-service'
+import { createEvent } from '@/services/event-service'
 
 const TEST_USER_EMAIL = 'task-service-test@example.com'
 const OTHER_USER_EMAIL = 'task-service-test-other@example.com'
@@ -27,6 +28,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await prisma.task.deleteMany({ where: { userId: { in: [userId, otherUserId] } } })
+  await prisma.event.deleteMany({ where: { userId: { in: [userId, otherUserId] } } })
 })
 
 afterAll(async () => {
@@ -48,6 +50,32 @@ describe('createTask', () => {
     expect(task.description).toBeNull()
     expect(task.dueAt).toBeNull()
     expect(task.status).toBe('TODO')
+  })
+
+  it('links to an event when eventId is provided', async () => {
+    const event = await createEvent(userId, {
+      title: '打ち合わせ',
+      allDay: false,
+      startAt: new Date('2026-08-20T01:00:00.000Z'),
+      endAt: new Date('2026-08-20T02:00:00.000Z'),
+    })
+
+    const task = await createTask(userId, { title: 'タスク', priority: 'MEDIUM', eventId: event.id })
+
+    expect(task.eventId).toBe(event.id)
+  })
+
+  it('throws NotFoundError when eventId belongs to another user', async () => {
+    const event = await createEvent(otherUserId, {
+      title: '他人の予定',
+      allDay: false,
+      startAt: new Date('2026-08-20T01:00:00.000Z'),
+      endAt: new Date('2026-08-20T02:00:00.000Z'),
+    })
+
+    await expect(
+      createTask(userId, { title: 'タスク', priority: 'MEDIUM', eventId: event.id }),
+    ).rejects.toBeInstanceOf(NotFoundError)
   })
 })
 
@@ -152,6 +180,36 @@ describe('updateTask', () => {
     const task = await createTask(otherUserId, { title: '他人のタスク', priority: 'MEDIUM' })
 
     await expect(updateTask(userId, task.id, { title: '書き換え' })).rejects.toBeInstanceOf(
+      NotFoundError,
+    )
+  })
+
+  it('links to an event and clears the link when eventId is set to null', async () => {
+    const event = await createEvent(userId, {
+      title: '打ち合わせ',
+      allDay: false,
+      startAt: new Date('2026-08-20T01:00:00.000Z'),
+      endAt: new Date('2026-08-20T02:00:00.000Z'),
+    })
+    const task = await createTask(userId, { title: 'タスク', priority: 'MEDIUM' })
+
+    const linked = await updateTask(userId, task.id, { eventId: event.id })
+    expect(linked.eventId).toBe(event.id)
+
+    const unlinked = await updateTask(userId, task.id, { eventId: null })
+    expect(unlinked.eventId).toBeNull()
+  })
+
+  it('throws NotFoundError when linking to another user\'s event', async () => {
+    const event = await createEvent(otherUserId, {
+      title: '他人の予定',
+      allDay: false,
+      startAt: new Date('2026-08-20T01:00:00.000Z'),
+      endAt: new Date('2026-08-20T02:00:00.000Z'),
+    })
+    const task = await createTask(userId, { title: 'タスク', priority: 'MEDIUM' })
+
+    await expect(updateTask(userId, task.id, { eventId: event.id })).rejects.toBeInstanceOf(
       NotFoundError,
     )
   })
