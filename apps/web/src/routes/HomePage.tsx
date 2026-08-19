@@ -36,6 +36,9 @@ export function HomePage() {
       <Link to="/tasks" className="text-slate-900 underline">
         タスク一覧へ
       </Link>
+      <Link to="/events" className="text-slate-900 underline">
+        予定一覧へ
+      </Link>
     </main>
   )
 }
