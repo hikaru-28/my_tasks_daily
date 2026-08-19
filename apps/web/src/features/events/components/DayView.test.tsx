@@ -17,8 +17,7 @@ function jsonResponse(body: unknown, status = 200) {
 function stubFetchByUrl(handlers: { events?: unknown; tasks?: unknown }) {
   vi.stubGlobal(
     'fetch',
-    vi.fn((input: RequestInfo | URL) => {
-      const url = typeof input === 'string' ? input : input.toString()
+    vi.fn((url: string) => {
       if (url.includes('/api/v1/events')) {
         return jsonResponse(handlers.events ?? { items: [], total: 0 })
       }

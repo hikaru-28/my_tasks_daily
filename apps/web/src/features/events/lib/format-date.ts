@@ -4,6 +4,11 @@ import { isoStringToJstDateInput } from '@/lib/jst-date'
 const dateTimeFormatter = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Asia/Tokyo',
   hour12: false,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
 })
 
 const timeFormatter = new Intl.DateTimeFormat('ja-JP', {
@@ -24,9 +29,10 @@ export function jstDateTimeInputToIsoString(value: string): string {
 
 // APIから受け取ったISO文字列を <input type="datetime-local"> 用のJST日時文字列に変換する
 export function isoStringToJstDateTimeInput(iso: string): string {
-  // sv-SE ロケールは "YYYY-MM-DD HH:mm:ss" 形式を返すため datetime-local 用に整形する
-  const [datePart, timePart] = dateTimeFormatter.format(new Date(iso)).split(' ')
-  return `${datePart}T${timePart?.slice(0, 5)}`
+  const parts = dateTimeFormatter.formatToParts(new Date(iso))
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '00'
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`
 }
 
 export function formatEventTimeRange(event: Pick<Event, 'startAt' | 'endAt' | 'allDay'>): string {

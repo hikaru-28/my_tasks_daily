@@ -68,8 +68,7 @@ describe('TaskForm', () => {
   })
 
   it('includes the selected eventId when creating a task', async () => {
-    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString()
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
       if (url.startsWith('/api/v1/events')) {
         return jsonResponse(EVENT_OPTIONS_RESPONSE)
       }
@@ -110,7 +109,7 @@ describe('TaskForm', () => {
       '/api/v1/tasks',
       expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('"eventId":"e1"'),
+        body: JSON.stringify({ title: '新しいタスク', priority: 'MEDIUM', eventId: 'e1' }),
       }),
     )
   })
